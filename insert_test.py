@@ -18,7 +18,7 @@ client = MongoClient(mongo_uri)
 db = client["medicine_monitor"]
 collection = db["temperature_readings"]
 
-temperature = 5.0
+temperature = 3.0
 
 MIN_TEMP, MAX_TEMP = MEDICINE_LIMITS["Medicine A"]
 

@@ -88,54 +88,59 @@ st.subheader("Alert")
 st.success(alert)
 
 # Temperature history
-st.subheader("Temperature History")
+@st.fragment(run_every="5s")
+def live_dashboard():
+    st.subheader("Temperature History")
 
-readings = list(
-    collection.find().sort("timestamp", 1)
-)
-
-data = {
-    "Time": [reading["timestamp"] for reading in readings],
-    "Temperature": [reading["temperature"] for reading in readings],
-    "Medicine": [reading["medicine"] for reading in readings],
-    "Status": [reading["status"] for reading in readings]
-}
-
-df = pd.DataFrame(data)
-
-st.line_chart(
-    df,
-    x="Time",
-    y="Temperature"
-)
-
-# Calculate statistics
-minimum = df["Temperature"].min()
-maximum = df["Temperature"].max()
-average = df["Temperature"].mean()
-
-# Statistics
-st.subheader("Temperature Statistics")
-
-col1, col2, col3 = st.columns(3)
-
-with col1:
-    st.metric("Minimum", f"{minimum:.2f} °C")
-
-with col2:
-    st.metric("Maximum", f"{maximum:.2f} °C")
-
-with col3:
-    st.metric("Average", f"{average:.2f} °C")
-
-st.subheader("Alert History")
-
-unsafe_readings = df[df["Status"] == "UNSAFE"]
-
-if unsafe_readings.empty:
-    st.success("No temperature alerts recorded.")
-else:
-    st.dataframe(
-        unsafe_readings,
-        width="stretch"
+    readings = list(
+        collection.find().sort("timestamp", 1)
     )
+
+    data = {
+        "Time": [reading["timestamp"] for reading in readings],
+        "Temperature": [reading["temperature"] for reading in readings],
+        "Medicine": [reading["medicine"] for reading in readings],
+        "Status": [reading["status"] for reading in readings]
+    }
+
+    df = pd.DataFrame(data)
+
+    st.line_chart(
+        df,
+        x="Time",
+        y="Temperature"
+    )
+
+    # Calculate statistics
+    minimum = df["Temperature"].min()
+    maximum = df["Temperature"].max()
+    average = df["Temperature"].mean()
+
+    # Statistics
+    st.subheader("Temperature Statistics")
+
+    col1, col2, col3 = st.columns(3)
+
+    with col1:
+        st.metric("Minimum", f"{minimum:.2f} °C")
+
+    with col2:
+        st.metric("Maximum", f"{maximum:.2f} °C")
+
+    with col3:
+        st.metric("Average", f"{average:.2f} °C")
+
+    st.subheader("Alert History")
+
+    unsafe_readings = df[df["Status"] == "UNSAFE"]
+
+    if unsafe_readings.empty:
+        st.success("No temperature alerts recorded.")
+    else:
+        st.dataframe(
+            unsafe_readings,
+            width="stretch"
+        )
+
+
+live_dashboard()
