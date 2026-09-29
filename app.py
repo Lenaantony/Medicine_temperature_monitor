@@ -38,6 +38,7 @@ medicine = st.selectbox(
 
 # Temporary test temperature
 latest_reading = collection.find_one(
+    {"medicine": medicine},
     sort=[("timestamp", -1)]
 )
 
@@ -45,8 +46,12 @@ if latest_reading:
     temperature = latest_reading["temperature"]
     medicine_from_db = latest_reading["medicine"]
 else:
-    temperature = 0
+    temperature = None
     medicine_from_db = "No data"
+
+if latest_reading is None:
+    st.warning(f"No temperature data available for {medicine}.")
+    st.stop()
 
 # Temporary test storage range
 MIN_TEMP, MAX_TEMP = MEDICINE_LIMITS[medicine]
@@ -73,6 +78,10 @@ with col2:
         "Storage Status",
         status
     )
+st.info(
+    f"Allowed temperature range for {medicine}: "
+    f"{MIN_TEMP} °C – {MAX_TEMP} °C"
+)
 
 # Alert
 st.subheader("Alert")
@@ -87,7 +96,9 @@ readings = list(
 
 data = {
     "Time": [reading["timestamp"] for reading in readings],
-    "Temperature": [reading["temperature"] for reading in readings]
+    "Temperature": [reading["temperature"] for reading in readings],
+    "Medicine": [reading["medicine"] for reading in readings],
+    "Status": [reading["status"] for reading in readings]
 }
 
 df = pd.DataFrame(data)
@@ -119,9 +130,7 @@ with col3:
 
 st.subheader("Alert History")
 
-unsafe_readings = df[df["Temperature"].apply(
-    lambda temp: temp < MIN_TEMP or temp > MAX_TEMP
-)]
+unsafe_readings = df[df["Status"] == "UNSAFE"]
 
 if unsafe_readings.empty:
     st.success("No temperature alerts recorded.")
